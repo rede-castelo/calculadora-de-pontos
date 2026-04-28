@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Calculadora de Ganhos</title>
     <style>
         :root {
@@ -30,20 +30,19 @@
         html {
             margin: 0;
             padding: 0;
-            height: 100%;
+            min-height: 100%;
             font-family: 'Segoe UI', system-ui, sans-serif;
             background-color: var(--azul-fundo);
             color: var(--white);
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            touch-action: pan-y; 
             overscroll-behavior-y: contain;
         }
 
         header {
             text-align: center;
+            margin-top: 5vh;
             margin-bottom: 2vh;
             z-index: 10;
             width: 90%;
@@ -93,6 +92,7 @@
             transition: all 0.3s;
             position: relative;
             z-index: 20;
+            appearance: none;
         }
 
         input:focus {
@@ -135,6 +135,7 @@
             box-shadow: 0 4px 15px rgba(237, 37, 64, 0.3);
             transition: 0.2s;
             z-index: 20;
+            touch-action: manipulation;
         }
 
         #calc-btn:hover {
@@ -155,7 +156,11 @@
             flex-direction: column;
             align-items: center;
             opacity: 0;
-            transition: opacity 0.8s ease-in-out;
+            transition: opacity 0.5s ease;
+        }
+
+        .result-container.visible {
+            opacity: 1;
         }
 
         #money-bag-svg {
@@ -204,18 +209,6 @@
             pointer-events: none;
             z-index: 1;
         }
-
-        @media (max-height: 550px) {
-            body {
-                justify-content: flex-start;
-                padding-top: 10px;
-                overflow-y: auto;
-            }
-
-            #money-bag-svg {
-                width: 100px;
-            }
-        }
     </style>
 </head>
 
@@ -227,7 +220,8 @@
     </header>
     <div class="container">
         <div class="input-wrapper">
-            <input type="number" id="points-input" placeholder="Insira seus pontos" autocomplete="off" />
+            <input type="number" id="points-input" placeholder="Insira seus pontos" autocomplete="off"
+                inputmode="numeric" />
             <button id="calc-btn">Calcular Ganho</button>
         </div>
         <div class="result-container" id="result-area">
@@ -283,7 +277,10 @@
         window.addEventListener('resize', resize);
         resize();
 
-        DOM.input.addEventListener('input', () => {
+        DOM.input.addEventListener('input', (e) => {
+            if (e.target.value.length > 7) {
+                e.target.value = e.target.value.slice(0, 7);
+            }
             DOM.input.classList.remove('error');
         });
 
@@ -328,10 +325,12 @@
                 const elapsed = timestamp - animation.start;
                 const progress = Math.min(elapsed / animation.duration, 1);
                 const eased = 1 - Math.pow(1 - progress, 3);
+
+                const current = Math.max(0, eased * animation.target);
                 const fillPercent = animation.target > 0 ? (eased * 100) : 0;
-                const current = eased * animation.target;
 
                 DOM.display.innerText = current.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                DOM.display.style.opacity = 1;
                 DOM.display.style.color = animation.target > 0 ? "var(--verde)" : "var(--cinza-zero)";
 
                 DOM.offsets.forEach(el => el.setAttribute('offset', fillPercent + "%"));
@@ -345,18 +344,20 @@
         }
 
         DOM.btn.onclick = () => {
-            if (!DOM.input.value || DOM.input.value.trim() === "") {
+            DOM.input.blur();
+
+            if (!DOM.input.value || DOM.input.value.trim() === "" || parseInt(DOM.input.value) < 0) {
                 DOM.input.classList.add('error');
                 DOM.input.focus();
                 return;
             }
 
-            DOM.resultArea.style.opacity = 1;
+            DOM.resultArea.classList.add('visible');
 
-            const p = parseInt(DOM.input.value);
+            const p = Math.abs(parseInt(DOM.input.value));
             const factor = p <= 100 ? 0 : (p <= 499 ? 0.4 : (p <= 999 ? 0.6 : 1.2));
-            animation.target = p * factor;
 
+            animation.target = p * factor;
             particles = [];
             animation.start = performance.now();
 
