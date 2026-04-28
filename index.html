@@ -31,7 +31,6 @@
             margin: 0;
             padding: 0;
             height: 100%;
-            overflow: hidden;
             font-family: 'Segoe UI', system-ui, sans-serif;
             background-color: var(--azul-fundo);
             color: var(--white);
@@ -39,6 +38,8 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            touch-action: pan-y; 
+            overscroll-behavior-y: contain;
         }
 
         header {
