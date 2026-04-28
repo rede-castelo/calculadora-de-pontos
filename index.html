@@ -37,7 +37,8 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            overscroll-behavior-y: contain;
+            overscroll-behavior-y: auto;
+            overflow-x: hidden;
         }
 
         header {
@@ -278,9 +279,7 @@
         resize();
 
         DOM.input.addEventListener('input', (e) => {
-            if (e.target.value.length > 7) {
-                e.target.value = e.target.value.slice(0, 7);
-            }
+            if (e.target.value.length > 7) e.target.value = e.target.value.slice(0, 7);
             DOM.input.classList.remove('error');
         });
 
@@ -343,21 +342,13 @@
             requestAnimationFrame(update);
         }
 
-        DOM.btn.onclick = () => {
-            DOM.input.blur();
-
-            if (!DOM.input.value || DOM.input.value.trim() === "" || parseInt(DOM.input.value) < 0) {
-                DOM.input.classList.add('error');
-                DOM.input.focus();
-                return;
-            }
-
-            DOM.resultArea.classList.add('visible');
-
+        const runCalculation = () => {
             const p = Math.abs(parseInt(DOM.input.value));
             const factor = p <= 100 ? 0 : (p <= 499 ? 0.4 : (p <= 999 ? 0.6 : 1.2));
+            const newTarget = p * factor;
 
-            animation.target = p * factor;
+            DOM.resultArea.classList.add('visible');
+            animation.target = newTarget;
             particles = [];
             animation.start = performance.now();
 
@@ -367,6 +358,23 @@
                 }
             } else {
                 DOM.offsets.forEach(el => el.setAttribute('offset', "0%"));
+            }
+        };
+
+        DOM.btn.onclick = () => {
+            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+            if (!DOM.input.value || DOM.input.value.trim() === "" || parseInt(DOM.input.value) < 0) {
+                DOM.input.classList.add('error');
+                DOM.input.focus();
+                return;
+            }
+
+            if (isMobile) {
+                DOM.input.blur();
+                setTimeout(runCalculation, 350);
+            } else {
+                runCalculation();
             }
         };
 
