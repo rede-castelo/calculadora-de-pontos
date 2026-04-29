@@ -3,10 +3,10 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="Calculadora de pontos para a Rede Castelo.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Simulador de pontos para a Rede Castelo. Projeto não oficial.">
     <meta name="theme-color" content="#00061B">
-    <title>Calculadora de Pontos - Rede Castelo</title>
+    <title>Simulador de Pontos - Rede Castelo</title>
     <style>
         :root {
             --vermelho: #ED2540;
@@ -59,9 +59,20 @@
 
         h1 {
             margin-top: 15px;
-            font-size: clamp(1rem, 4vw, 1.5rem);
+            font-size: clamp(1.2rem, 5vw, 1.6rem);
             text-transform: uppercase;
             letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: var(--amarelo);
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+            display: block;
         }
 
         .container {
@@ -71,6 +82,7 @@
             z-index: 10;
             width: 100%;
             max-width: 500px;
+            flex: 1;
         }
 
         .input-wrapper {
@@ -146,10 +158,6 @@
             filter: brightness(1.1);
         }
 
-        #calc-btn:active {
-            transform: translateY(0);
-        }
-
         .result-container {
             margin-top: 30px;
             text-align: center;
@@ -214,6 +222,16 @@
             z-index: 100;
         }
 
+        footer {
+            margin-top: 40px;
+            margin-bottom: 20px;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.4);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+
         .sr-only {
             position: absolute;
             width: 1px;
@@ -232,13 +250,14 @@
     <header>
         <img src="./logo_rede_castelo.png" alt="Logotipo Rede Castelo Branco" class="logo-box">
         <h1>Calculadora de Pontos</h1>
+        <span class="subtitle">Simulador Cliente</span>
     </header>
     <main class="container">
         <div class="input-wrapper">
             <label for="points-input" class="sr-only">Digite a quantidade de pontos</label>
             <input type="number" id="points-input" placeholder="Insira seus pontos" autocomplete="off"
                 inputmode="numeric" />
-            <button id="calc-btn">Calcular Pontos</button>
+            <button id="calc-btn">Calcular Ganhos</button>
         </div>
         <section class="result-container" id="result-area" aria-live="polite">
             <svg id="money-bag-svg" viewBox="0 0 160 160" aria-hidden="true">
@@ -262,6 +281,10 @@
             <div id="value-display">R$ 0,00</div>
         </section>
     </main>
+
+    <footer>
+        <p>Atenção: Este é um simulador independente para fins demonstrativos.</p>
+    </footer>
 
     <script>
         const DOM = {
@@ -321,18 +344,15 @@
 
             if (animation.start) {
                 const elapsed = timestamp - animation.start;
-
                 if (elapsed > animation.delay) {
                     const progress = Math.min((elapsed - animation.delay) / (animation.duration - animation.delay), 1);
                     const eased = 1 - Math.pow(1 - progress, 3);
-
                     const current = Math.max(0, eased * animation.target);
                     currentFillPercent = eased * animation.maxFill;
 
                     DOM.display.innerText = current.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
                     DOM.display.style.opacity = 1;
                     DOM.display.style.color = animation.target > 0 ? "var(--verde)" : "var(--cinza-zero)";
-
                     DOM.offsets.forEach(el => el.setAttribute('offset', currentFillPercent + "%"));
 
                     if (progress === 1) {
@@ -342,17 +362,13 @@
                 }
             }
 
-            particles.forEach((p, index) => {
+            particles.forEach((p) => {
                 if (!p.done) {
                     p.sy += p.g;
                     p.x += (p.tx - p.x) * 0.04;
                     p.y += p.sy;
-
                     let currentLimitY = p.baseY - (p.bagHeight * (currentFillPercent / 100));
-
-                    if (p.y >= currentLimitY) {
-                        p.done = true;
-                    }
+                    if (p.y >= currentLimitY) p.done = true;
 
                     ctx.beginPath();
                     ctx.arc(p.x, p.y, p.size, 0, 7);
@@ -364,36 +380,24 @@
                 }
             });
             particles = particles.filter(p => !p.done);
-
             requestAnimationFrame(update);
         }
 
         const runCalculation = () => {
             const p = Math.abs(parseInt(DOM.input.value));
-            let factor = 0;
-            let maxFill = 0;
+            let factor = 0, maxFill = 0;
+            if (p > 100 && p <= 499) { factor = 0.4; maxFill = 35; }
+            else if (p >= 500 && p <= 999) { factor = 0.6; maxFill = 65; }
+            else if (p >= 1000) { factor = 1.2; maxFill = 100; }
 
-            if (p > 100 && p <= 499) {
-                factor = 0.4;
-                maxFill = 35;
-            } else if (p >= 500 && p <= 999) {
-                factor = 0.6;
-                maxFill = 65;
-            } else if (p >= 1000) {
-                factor = 1.2;
-                maxFill = 100;
-            }
-
-            const newTarget = p * factor;
+            animation.target = p * factor;
+            animation.maxFill = maxFill;
+            currentFillPercent = 0;
+            particles = [];
 
             DOM.resultArea.classList.add('visible');
             DOM.offsets.forEach(el => el.setAttribute('offset', "0%"));
             DOM.display.innerText = (0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-
-            animation.target = newTarget;
-            animation.maxFill = maxFill;
-            currentFillPercent = 0;
-            particles = [];
             animation.start = performance.now();
 
             if (animation.target > 0) {
@@ -409,15 +413,11 @@
                 DOM.input.focus();
                 return;
             }
-
             DOM.input.blur();
             setTimeout(runCalculation, 350);
         };
 
-        DOM.input.onkeypress = (e) => {
-            if (e.key === 'Enter') DOM.btn.click();
-        };
-
+        DOM.input.onkeypress = (e) => { if (e.key === 'Enter') DOM.btn.click(); };
         requestAnimationFrame(update);
     </script>
 </body>
