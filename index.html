@@ -4,7 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Calculadora de Ganhos</title>
+    <meta name="description"
+        content="Calculadora de pontos para a Rede Castelo.">
+    <meta name="theme-color" content="#00061B">
+    <title>Calculadora de Pontos - Rede Castelo</title>
     <style>
         :root {
             --vermelho: #ED2540;
@@ -12,7 +15,7 @@
             --cinza-dark: #212121;
             --amarelo: #EFB608;
             --verde: #2ECC71;
-            --cinza-zero: rgba(255, 255, 255, 0.4);
+            --cinza-zero: rgba(255, 255, 255, 0.7);
             --white: #FFFFFF;
         }
 
@@ -158,6 +161,7 @@
             align-items: center;
             opacity: 0;
             transition: opacity 0.5s ease;
+            z-index: 5;
         }
 
         .result-container.visible {
@@ -208,7 +212,7 @@
             top: 0;
             left: 0;
             pointer-events: none;
-            z-index: 1;
+            z-index: 100;
         }
     </style>
 </head>
@@ -217,13 +221,13 @@
     <canvas id="canvas"></canvas>
     <header>
         <img src="./logo_rede_castelo.png" alt="logo" class="logo-box">
-        <h1>Calculadora de Ganhos</h1>
+        <h1>Calculadora de Pontos</h1>
     </header>
     <div class="container">
         <div class="input-wrapper">
             <input type="number" id="points-input" placeholder="Insira seus pontos" autocomplete="off"
                 inputmode="numeric" />
-            <button id="calc-btn">Calcular Ganho</button>
+            <button id="calc-btn">Calcular Pontos</button>
         </div>
         <div class="result-container" id="result-area">
             <svg id="money-bag-svg" viewBox="0 0 160 160">
@@ -267,6 +271,7 @@
         const ctx = DOM.canvas.getContext('2d');
         let particles = [];
         let animation = { start: null, target: 0, maxFill: 0, duration: 2500, delay: 600 };
+        let currentFillPercent = 0;
 
         function resize() {
             DOM.canvas.width = window.innerWidth;
@@ -294,7 +299,9 @@
                 x: r.left + r.width / 2,
                 y: r.bottom,
                 tx: b.left + b.width / 2 + (Math.random() - 0.5) * (b.width * 0.5),
-                ty: b.top + b.height * 0.6 + (Math.random() * (b.height * 0.25)),
+                // ty agora é a base do saco, será ajustado no update
+                baseY: b.top + b.height * 0.9,
+                bagHeight: b.height * 0.6,
                 sy: 0.5, g: 0.08, size: 6, done: false
             };
         }
@@ -302,39 +309,18 @@
         function update(timestamp) {
             ctx.clearRect(0, 0, DOM.canvas.width, DOM.canvas.height);
 
-            if (animation.target > 0) {
-                particles.forEach(p => {
-                    if (!p.done) {
-                        p.sy += p.g;
-                        p.x += (p.tx - p.x) * 0.04;
-                        p.y += p.sy;
-                        if (p.y >= p.ty) { p.done = true; p.y = p.ty; }
-                    }
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size, 0, 7);
-                    ctx.fillStyle = '#EFB608';
-                    ctx.fill();
-                    ctx.strokeStyle = '#B8860B';
-                    ctx.lineWidth = 1;
-                    ctx.stroke();
-                });
-            }
-
             if (animation.start) {
                 const elapsed = timestamp - animation.start;
-
                 if (elapsed > animation.delay) {
                     const progress = Math.min((elapsed - animation.delay) / (animation.duration - animation.delay), 1);
                     const eased = 1 - Math.pow(1 - progress, 3);
-
                     const current = Math.max(0, eased * animation.target);
-                    const fillPercent = eased * animation.maxFill;
+                    currentFillPercent = eased * animation.maxFill;
 
                     DOM.display.innerText = current.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
                     DOM.display.style.opacity = 1;
                     DOM.display.style.color = animation.target > 0 ? "var(--verde)" : "var(--cinza-zero)";
-
-                    DOM.offsets.forEach(el => el.setAttribute('offset', fillPercent + "%"));
+                    DOM.offsets.forEach(el => el.setAttribute('offset', currentFillPercent + "%"));
 
                     if (progress === 1) {
                         animation.start = null;
@@ -342,6 +328,32 @@
                     }
                 }
             }
+
+            particles.forEach((p, index) => {
+                if (!p.done) {
+                    p.sy += p.g;
+                    p.x += (p.tx - p.x) * 0.04;
+                    p.y += p.sy;
+
+                    // Calcula o limite atual baseado no preenchimento do saco (de baixo para cima)
+                    let currentLimitY = p.baseY - (p.bagHeight * (currentFillPercent / 100));
+
+                    if (p.y >= currentLimitY) {
+                        p.done = true;
+                    }
+
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, 7);
+                    ctx.fillStyle = '#EFB608';
+                    ctx.fill();
+                    ctx.strokeStyle = '#B8860B';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+            });
+            // Limpa partículas concluídas
+            particles = particles.filter(p => !p.done);
+
             requestAnimationFrame(update);
         }
 
@@ -369,6 +381,7 @@
 
             animation.target = newTarget;
             animation.maxFill = maxFill;
+            currentFillPercent = 0;
             particles = [];
             animation.start = performance.now();
 
@@ -385,8 +398,8 @@
                 DOM.input.focus();
                 return;
             }
-
-            runCalculation();
+            DOM.input.blur();
+            setTimeout(runCalculation, 350);
         };
 
         DOM.input.onkeypress = (e) => {
