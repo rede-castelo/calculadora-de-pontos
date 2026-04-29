@@ -4,8 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description"
-        content="Calculadora de pontos para a Rede Castelo.">
+    <meta name="description" content="Calculadora de pontos para a Rede Castelo.">
     <meta name="theme-color" content="#00061B">
     <title>Calculadora de Pontos - Rede Castelo</title>
     <style>
@@ -15,7 +14,7 @@
             --cinza-dark: #212121;
             --amarelo: #EFB608;
             --verde: #2ECC71;
-            --cinza-zero: rgba(255, 255, 255, 0.7);
+            --cinza-zero: rgba(255, 255, 255, 0.85);
             --white: #FFFFFF;
         }
 
@@ -214,23 +213,35 @@
             pointer-events: none;
             z-index: 100;
         }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
     </style>
 </head>
 
 <body>
     <canvas id="canvas"></canvas>
     <header>
-        <img src="./logo_rede_castelo.png" alt="logo" class="logo-box">
+        <img src="./logo_rede_castelo.png" alt="Logotipo Rede Castelo Branco" class="logo-box">
         <h1>Calculadora de Pontos</h1>
     </header>
-    <div class="container">
+    <main class="container">
         <div class="input-wrapper">
+            <label for="points-input" class="sr-only">Digite a quantidade de pontos</label>
             <input type="number" id="points-input" placeholder="Insira seus pontos" autocomplete="off"
                 inputmode="numeric" />
             <button id="calc-btn">Calcular Pontos</button>
         </div>
-        <div class="result-container" id="result-area">
-            <svg id="money-bag-svg" viewBox="0 0 160 160">
+        <section class="result-container" id="result-area" aria-live="polite">
+            <svg id="money-bag-svg" viewBox="0 0 160 160" aria-hidden="true">
                 <defs>
                     <linearGradient id="bagGradient" x1="0" x2="0" y1="1" y2="0">
                         <stop id="fill-offset" offset="0%" stop-color="#EFB608" />
@@ -249,8 +260,8 @@
                 <text x="80" y="105" text-anchor="middle" class="dollar-symbol">$</text>
             </svg>
             <div id="value-display">R$ 0,00</div>
-        </div>
-    </div>
+        </section>
+    </main>
 
     <script>
         const DOM = {
@@ -299,7 +310,6 @@
                 x: r.left + r.width / 2,
                 y: r.bottom,
                 tx: b.left + b.width / 2 + (Math.random() - 0.5) * (b.width * 0.5),
-                // ty agora é a base do saco, será ajustado no update
                 baseY: b.top + b.height * 0.9,
                 bagHeight: b.height * 0.6,
                 sy: 0.5, g: 0.08, size: 6, done: false
@@ -311,15 +321,18 @@
 
             if (animation.start) {
                 const elapsed = timestamp - animation.start;
+
                 if (elapsed > animation.delay) {
                     const progress = Math.min((elapsed - animation.delay) / (animation.duration - animation.delay), 1);
                     const eased = 1 - Math.pow(1 - progress, 3);
+
                     const current = Math.max(0, eased * animation.target);
                     currentFillPercent = eased * animation.maxFill;
 
                     DOM.display.innerText = current.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
                     DOM.display.style.opacity = 1;
                     DOM.display.style.color = animation.target > 0 ? "var(--verde)" : "var(--cinza-zero)";
+
                     DOM.offsets.forEach(el => el.setAttribute('offset', currentFillPercent + "%"));
 
                     if (progress === 1) {
@@ -335,7 +348,6 @@
                     p.x += (p.tx - p.x) * 0.04;
                     p.y += p.sy;
 
-                    // Calcula o limite atual baseado no preenchimento do saco (de baixo para cima)
                     let currentLimitY = p.baseY - (p.bagHeight * (currentFillPercent / 100));
 
                     if (p.y >= currentLimitY) {
@@ -351,7 +363,6 @@
                     ctx.stroke();
                 }
             });
-            // Limpa partículas concluídas
             particles = particles.filter(p => !p.done);
 
             requestAnimationFrame(update);
@@ -398,6 +409,7 @@
                 DOM.input.focus();
                 return;
             }
+
             DOM.input.blur();
             setTimeout(runCalculation, 350);
         };
