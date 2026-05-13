@@ -4,193 +4,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Simulador de pontos para a Rede Castelo. Projeto não oficial.">
-    <meta name="theme-color" content="#00061B">
-    <title>Simulador de Pontos - Rede Castelo</title>
+    <title>Calculadora</title>
     <style>
         :root {
-            --vermelho: #ED2540;
             --azul-fundo: #00061B;
-            --cinza-dark: #212121;
-            --amarelo: #EFB608;
-            --verde: #2ECC71;
-            --cinza-zero: rgba(255, 255, 255, 0.85);
-            --white: #FFFFFF;
-        }
-
-        input::-webkit-outer-spin-button,
-        input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-
-        input[type=number] {
-            -moz-appearance: textfield;
+            --calc-corpo: #1a1a1a;
+            --tela-fundo: #b5bd99;
+            --botao-cor: #333;
+            --verde-sucesso: #2ECC71;
+            --amarelo-moeda: #EFB608;
+            --branco: #FFFFFF;
         }
 
         body,
         html {
             margin: 0;
             padding: 0;
-            min-height: 100%;
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            height: 100%;
+            font-family: 'Segoe UI', sans-serif;
             background-color: var(--azul-fundo);
-            color: var(--white);
             display: flex;
             flex-direction: column;
             align-items: center;
-            overscroll-behavior-y: auto;
-            overflow-x: hidden;
+            justify-content: center;
+            overflow: hidden;
         }
 
-        header {
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 15;
+        }
+
+        .visual-header {
+            margin-bottom: 30px;
             text-align: center;
-            margin-top: 5vh;
-            margin-bottom: 2vh;
             z-index: 10;
-            width: 90%;
-        }
-
-        .logo-box {
-            width: 100%;
-            max-width: 400px;
-            height: auto;
-        }
-
-        h1 {
-            margin-top: 15px;
-            font-size: clamp(1.2rem, 5vw, 1.6rem);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
-        }
-
-        .subtitle {
-            font-size: 0.9rem;
-            color: var(--amarelo);
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 8px;
-            display: block;
-        }
-
-        .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            z-index: 10;
-            width: 100%;
-            max-width: 500px;
-            flex: 1;
-        }
-
-        .input-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            padding: 0 20px;
-            box-sizing: border-box;
-        }
-
-        input {
-            padding: 15px;
-            font-size: 1.4rem;
-            border-radius: 12px;
-            border: 2px solid var(--cinza-dark);
-            background: rgba(33, 33, 33, 0.8);
-            color: var(--white);
-            text-align: center;
-            outline: none;
-            width: 100%;
-            transition: all 0.3s;
-            position: relative;
-            z-index: 20;
-            appearance: none;
-        }
-
-        input:focus {
-            border-color: var(--amarelo);
-        }
-
-        input.error {
-            border-color: var(--vermelho);
-            animation: shake 0.4s;
-        }
-
-        @keyframes shake {
-
-            0%,
-            100% {
-                transform: translateX(0);
-            }
-
-            25% {
-                transform: translateX(-5px);
-            }
-
-            75% {
-                transform: translateX(5px);
-            }
-        }
-
-        #calc-btn {
-            margin-top: 20px;
-            padding: 15px;
-            width: 100%;
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: var(--white);
-            background-color: var(--vermelho);
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            text-transform: uppercase;
-            box-shadow: 0 4px 15px rgba(237, 37, 64, 0.3);
-            transition: 0.2s;
-            z-index: 20;
-            touch-action: manipulation;
-        }
-
-        #calc-btn:hover {
-            transform: translateY(-2px);
-            filter: brightness(1.1);
-        }
-
-        .result-container {
-            margin-top: 30px;
-            text-align: center;
-            position: relative;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-            z-index: 5;
-        }
-
-        .result-container.visible {
-            opacity: 1;
         }
 
         #money-bag-svg {
-            width: clamp(140px, 30vw, 180px);
+            width: 180px;
             height: auto;
+            filter: drop-shadow(0 0 10px rgba(239, 182, 8, 0.2));
         }
 
         .bag-main-path {
             fill: url(#bagGradient);
-            stroke: #444;
-            stroke-width: 0.8;
+            stroke: #555;
+            stroke-width: 1;
         }
 
         .bag-rope {
             fill: none;
             stroke: #8b4513;
-            stroke-width: 2.5;
-            stroke-linecap: round;
+            stroke-width: 3;
         }
 
         .bag-top {
@@ -199,225 +68,231 @@
 
         .dollar-symbol {
             fill: url(#dollarGradient);
-            font-family: 'Arial Black', sans-serif;
+            font-family: Arial Black;
             font-size: 35px;
+        }
+
+        .calc-container {
+            background-color: var(--calc-corpo);
+            padding: 25px;
+            border-radius: 25px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+            width: 300px;
+            z-index: 20;
+            border: 2px solid #222;
+        }
+
+        .screen {
+            background-color: var(--tela-fundo);
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 25px;
+            text-align: right;
+            box-shadow: inset 0 3px 10px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        #points-view {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #222;
+            margin: 0;
+            min-height: 1.6rem;
+        }
+
+        #value-view {
+            font-size: 2.2rem;
             font-weight: 900;
-            filter: drop-shadow(0px 2px 2px rgba(0, 0, 0, 0.8));
+            color: #000;
+            margin: 8px 0 0 0;
         }
 
-        #value-display {
-            font-size: clamp(1.8rem, 6vw, 2.5rem);
-            font-weight: 800;
-            color: var(--cinza-zero);
-            margin-top: 15px;
-            transition: color 0.4s ease;
-            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
         }
 
-        canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            pointer-events: none;
-            z-index: 100;
+        .key {
+            background: var(--botao-cor);
+            color: var(--branco);
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px #000;
         }
 
-        footer {
-            margin-top: 40px;
-            margin-bottom: 20px;
-            font-size: 0.75rem;
-            color: rgba(255, 255, 255, 0.4);
-            text-align: center;
-            width: 90%;
-            max-width: 400px;
+        .key:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px #000;
         }
 
-        .sr-only {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            border: 0;
+        .key-action {
+            grid-column: span 2;
+            background-color: var(--verde-sucesso);
+            color: #000;
+        }
+
+        .key-clear {
+            grid-column: span 2;
+            background-color: #ED2540;
         }
     </style>
 </head>
 
 <body>
     <canvas id="canvas"></canvas>
-    <header>
-        <img src="./logo_rede_castelo.png" alt="Logotipo Rede Castelo Branco" class="logo-box">
-        <h1>Calculadora de Pontos</h1>
-        <span class="subtitle">Simulador Cliente</span>
-    </header>
-    <main class="container">
-        <div class="input-wrapper">
-            <label for="points-input" class="sr-only">Digite a quantidade de pontos</label>
-            <input type="number" id="points-input" placeholder="Insira seus pontos" autocomplete="off"
-                inputmode="numeric" />
-            <button id="calc-btn">Calcular Ganhos</button>
-        </div>
-        <section class="result-container" id="result-area" aria-live="polite">
-            <svg id="money-bag-svg" viewBox="0 0 160 160" aria-hidden="true">
-                <defs>
-                    <linearGradient id="bagGradient" x1="0" x2="0" y1="1" y2="0">
-                        <stop id="fill-offset" offset="0%" stop-color="#EFB608" />
-                        <stop id="trans-offset" offset="0%" stop-color="#1a1a1a" />
-                    </linearGradient>
-                    <linearGradient id="dollarGradient" x1="0" x2="0" y1="1" y2="0">
-                        <stop id="d-fill" offset="0%" stop-color="#2ECC71" />
-                        <stop id="d-empty" offset="0%" stop-color="#555" />
-                    </linearGradient>
-                </defs>
-                <path class="bag-top" d="M55,38 Q60,20 70,28 Q80,15 90,28 Q100,20 105,38 L95,45 Q80,40 65,45 Z" />
-                <path class="bag-main-path"
-                    d="M65,45 Q25,50 22,90 Q20,135 30,145 L35,148 Q80,140 125,148 L130,145 Q140,135 138,90 Q135,50 95,45 Q80,48 65,45 Z" />
-                <path class="bag-rope" d="M62,44 Q80,40 98,44" />
-                <circle cx="80" cy="42" r="3" fill="#5d2e0a" />
-                <text x="80" y="105" text-anchor="middle" class="dollar-symbol">$</text>
-            </svg>
-            <div id="value-display">R$ 0,00</div>
-        </section>
-    </main>
 
-    <footer>
-        <p>Atenção: Este é um simulador independente para fins demonstrativos.</p>
-    </footer>
+    <div class="visual-header" id="bag-area">
+        <svg id="money-bag-svg" viewBox="0 0 160 160">
+            <defs>
+                <linearGradient id="bagGradient" x1="0" x2="0" y1="1" y2="0">
+                    <stop id="fill-offset" offset="0%" stop-color="#EFB608" />
+                    <stop id="trans-offset" offset="0%" stop-color="#222" />
+                </linearGradient>
+                <linearGradient id="dollarGradient" x1="0" x2="0" y1="1" y2="0">
+                    <stop id="d-fill" offset="0%" stop-color="#2ECC71" />
+                    <stop id="d-empty" offset="0%" stop-color="#555" />
+                </linearGradient>
+            </defs>
+            <path class="bag-top" d="M55,38 Q60,20 70,28 Q80,15 90,28 Q100,20 105,38 L95,45 Q80,40 65,45 Z" />
+            <path class="bag-main-path"
+                d="M65,45 Q25,50 22,90 Q20,135 30,145 L35,148 Q80,140 125,148 L130,145 Q140,135 138,90 Q135,50 95,45 Q80,48 65,45 Z" />
+            <path class="bag-rope" d="M62,44 Q80,40 98,44" />
+            <circle cx="80" cy="42" r="3" fill="#5d2e0a" />
+            <text x="80" y="105" text-anchor="middle" class="dollar-symbol">$</text>
+        </svg>
+    </div>
+
+    <div class="calc-container" id="calc-body">
+        <div class="screen" id="calc-screen">
+            <p id="points-view">0</p>
+            <div id="value-view">R$ 0,00</div>
+        </div>
+        <div class="keypad">
+            <button class="key" onclick="press(7)">7</button>
+            <button class="key" onclick="press(8)">8</button>
+            <button class="key" onclick="press(9)">9</button>
+            <button class="key" style="visibility: hidden"></button>
+            <button class="key" onclick="press(4)">4</button>
+            <button class="key" onclick="press(5)">5</button>
+            <button class="key" onclick="press(6)">6</button>
+            <button class="key" style="visibility: hidden"></button>
+            <button class="key" onclick="press(1)">1</button>
+            <button class="key" onclick="press(2)">2</button>
+            <button class="key" onclick="press(3)">3</button>
+            <button class="key" style="visibility: hidden"></button>
+            <button class="key" onclick="press(0)">0</button>
+            <button class="key key-clear" onclick="clearAll()">C</button>
+            <button class="key" style="visibility: hidden"></button>
+            <button class="key key-action" onclick="runCalc()">Calcular</button>
+        </div>
+    </div>
 
     <script>
-        const DOM = {
-            input: document.getElementById('points-input'),
-            btn: document.getElementById('calc-btn'),
-            display: document.getElementById('value-display'),
-            resultArea: document.getElementById('result-area'),
-            offsets: [
-                document.getElementById('fill-offset'),
-                document.getElementById('trans-offset'),
-                document.getElementById('d-fill'),
-                document.getElementById('d-empty')
-            ],
-            canvas: document.getElementById('canvas'),
-            bag: document.getElementById('money-bag-svg')
-        };
+        let inputStr = "";
+        let isResultDisplayed = false;
+        const pointsDisp = document.getElementById('points-view');
+        const valueDisp = document.getElementById('value-view');
+        const offsets = [
+            document.getElementById('fill-offset'), document.getElementById('trans-offset'),
+            document.getElementById('d-fill'), document.getElementById('d-empty')
+        ];
 
-        const ctx = DOM.canvas.getContext('2d');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
         let particles = [];
-        let animation = { start: null, target: 0, maxFill: 0, duration: 2500, delay: 600 };
-        let currentFillPercent = 0;
+        let anim = { start: null, target: 0, fill: 0, dur: 2000 };
 
         function resize() {
-            DOM.canvas.width = window.innerWidth;
-            DOM.canvas.height = window.innerHeight;
-            particles = [];
-            animation.start = null;
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
         }
-
-        window.addEventListener('resize', resize);
+        window.onresize = resize;
         resize();
 
-        DOM.input.addEventListener('input', (e) => {
-            if (e.target.value.length > 7) e.target.value = e.target.value.slice(0, 7);
-            DOM.input.classList.remove('error');
-        });
-
-        DOM.input.addEventListener('keydown', (e) => {
-            if (['e', 'E', '+', '-', ','].includes(e.key)) e.preventDefault();
-        });
-
-        function createCoin() {
-            const r = DOM.input.getBoundingClientRect();
-            const b = DOM.bag.getBoundingClientRect();
-            return {
-                x: r.left + r.width / 2,
-                y: r.bottom,
-                tx: b.left + b.width / 2 + (Math.random() - 0.5) * (b.width * 0.5),
-                baseY: b.top + b.height * 0.9,
-                bagHeight: b.height * 0.6,
-                sy: 0.5, g: 0.08, size: 6, done: false
-            };
-        }
-
-        function update(timestamp) {
-            ctx.clearRect(0, 0, DOM.canvas.width, DOM.canvas.height);
-
-            if (animation.start) {
-                const elapsed = timestamp - animation.start;
-                if (elapsed > animation.delay) {
-                    const progress = Math.min((elapsed - animation.delay) / (animation.duration - animation.delay), 1);
-                    const eased = 1 - Math.pow(1 - progress, 3);
-                    const current = Math.max(0, eased * animation.target);
-                    currentFillPercent = eased * animation.maxFill;
-
-                    DOM.display.innerText = current.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-                    DOM.display.style.opacity = 1;
-                    DOM.display.style.color = animation.target > 0 ? "var(--verde)" : "var(--cinza-zero)";
-                    DOM.offsets.forEach(el => el.setAttribute('offset', currentFillPercent + "%"));
-
-                    if (progress === 1) {
-                        animation.start = null;
-                        particles = [];
-                    }
-                }
+        function press(n) {
+            if (isResultDisplayed) {
+                clearAll();
+                isResultDisplayed = false;
             }
-
-            particles.forEach((p) => {
-                if (!p.done) {
-                    p.sy += p.g;
-                    p.x += (p.tx - p.x) * 0.04;
-                    p.y += p.sy;
-                    let currentLimitY = p.baseY - (p.bagHeight * (currentFillPercent / 100));
-                    if (p.y >= currentLimitY) p.done = true;
-
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size, 0, 7);
-                    ctx.fillStyle = '#EFB608';
-                    ctx.fill();
-                    ctx.strokeStyle = '#B8860B';
-                    ctx.lineWidth = 1;
-                    ctx.stroke();
-                }
-            });
-            particles = particles.filter(p => !p.done);
-            requestAnimationFrame(update);
+            if (inputStr.length < 7) {
+                inputStr += n;
+                pointsDisp.innerText = inputStr;
+            }
         }
 
-        const runCalculation = () => {
-            const p = Math.abs(parseInt(DOM.input.value));
+        function clearAll() {
+            inputStr = "";
+            isResultDisplayed = false;
+            pointsDisp.innerText = "0";
+            valueDisp.innerText = "R$ 0,00";
+            anim.start = null;
+            offsets.forEach(el => el.setAttribute('offset', "0%"));
+            particles = [];
+        }
+
+        function runCalc() {
+            const p = parseInt(inputStr) || 0;
+            if (p <= 0) return;
+            isResultDisplayed = true;
+
             let factor = 0, maxFill = 0;
             if (p > 100 && p <= 499) { factor = 0.4; maxFill = 35; }
             else if (p >= 500 && p <= 999) { factor = 0.6; maxFill = 65; }
             else if (p >= 1000) { factor = 1.2; maxFill = 100; }
 
-            animation.target = p * factor;
-            animation.maxFill = maxFill;
-            currentFillPercent = 0;
-            particles = [];
+            anim.target = p * factor;
+            anim.fill = maxFill;
+            anim.start = performance.now();
 
-            DOM.resultArea.classList.add('visible');
-            DOM.offsets.forEach(el => el.setAttribute('offset', "0%"));
-            DOM.display.innerText = (0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-            animation.start = performance.now();
-
-            if (animation.target > 0) {
-                for (let i = 0; i < 40; i++) {
-                    setTimeout(() => animation.start && particles.push(createCoin()), i * 35);
-                }
+            for (let i = 0; i < 40; i++) {
+                setTimeout(() => {
+                    if (anim.start) particles.push(createCoin());
+                }, i * 30);
             }
-        };
+        }
 
-        DOM.btn.onclick = () => {
-            if (!DOM.input.value || DOM.input.value.trim() === "" || parseInt(DOM.input.value) < 0) {
-                DOM.input.classList.add('error');
-                DOM.input.focus();
-                return;
+        function createCoin() {
+            const screenRect = document.getElementById('calc-screen').getBoundingClientRect();
+            const bagRect = document.getElementById('money-bag-svg').getBoundingClientRect();
+
+            return {
+                x: screenRect.left + (screenRect.width / 2),
+                y: screenRect.top + (screenRect.height / 2),
+                tx: bagRect.left + (bagRect.width / 2) + (Math.random() - 0.5) * 60,
+                ty: bagRect.top + (bagRect.height * 0.7),
+                sy: -15,
+                g: 0.45,
+                size: 6,
+                done: false
+            };
+        }
+
+        function update(t) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (anim.start) {
+                const prog = Math.min((t - anim.start) / anim.dur, 1);
+                const curVal = prog * anim.target;
+                const curFill = prog * anim.fill;
+                valueDisp.innerText = curVal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                offsets.forEach(el => el.setAttribute('offset', curFill + "%"));
+                if (prog === 1) anim.start = null;
             }
-            DOM.input.blur();
-            setTimeout(runCalculation, 350);
-        };
 
-        DOM.input.onkeypress = (e) => { if (e.key === 'Enter') DOM.btn.click(); };
+            particles.forEach(p => {
+                p.sy += p.g; p.x += (p.tx - p.x) * 0.05; p.y += p.sy;
+                if (p.y > p.ty && p.sy > 0) p.done = true;
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, 7);
+                ctx.fillStyle = '#EFB608'; ctx.fill();
+                ctx.strokeStyle = '#B8860B'; ctx.stroke();
+            });
+            particles = particles.filter(p => !p.done);
+            requestAnimationFrame(update);
+        }
         requestAnimationFrame(update);
     </script>
 </body>
